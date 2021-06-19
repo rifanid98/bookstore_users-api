@@ -9,6 +9,7 @@ content-type: application:json
   "id": 1,
   "first_name": "Adnin",
   "last_name": "Rifandi",
+  "email": "aaaa",
   "date_created": "2021-06019"
 }
 
