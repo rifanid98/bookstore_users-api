@@ -1,6 +1,10 @@
 package app
 
-import "github.com/gin-gonic/gin"
+import (
+	_ "bookstore_users-api/utils/env"
+
+	"github.com/gin-gonic/gin"
+)
 
 var (
 	router = gin.Default()
