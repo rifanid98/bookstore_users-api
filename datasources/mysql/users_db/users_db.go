@@ -30,7 +30,7 @@ func init() {
 		DB_NAME,
 	)
 
-	Client, err := sql.Open("mysql", dataSource)
+	Client, err = sql.Open("mysql", dataSource)
 
 	if err != nil {
 		panic(err)
