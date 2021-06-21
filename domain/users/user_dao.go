@@ -3,7 +3,7 @@ package users
 import (
 	"bookstore_users-api/datasources/mysql/users_db"
 	"bookstore_users-api/utils/dates"
-	e "bookstore_users-api/utils/errors"
+	e "bookstore_users-api/utils/response"
 	"database/sql"
 	"fmt"
 
@@ -23,15 +23,15 @@ func (user *User) Get() *e.RestErr {
 		&user.Id,
 		&user.FirstName,
 		&user.LastName,
-		&user.Email,
 		&user.DateCreated,
+		&user.Email,
 	)
 	if err != nil {
 		fmt.Println(err.Error())
 		if err == sql.ErrNoRows {
-			return e.NotFoundError(fmt.Sprintf("user with id %d not found", user.Id))
+			return e.NotFound(fmt.Sprintf("user with id %d not found", user.Id))
 		} else {
-			return e.InternalServerError(fmt.Sprintf("failed to get user with id %d", user.Id))
+			return e.InternalServer(fmt.Sprintf("failed to get user with id %d", user.Id))
 		}
 	}
 	return nil
@@ -49,14 +49,31 @@ func (user *User) Save() *e.RestErr {
 
 	me, _ := err.(*mysql.MySQLError)
 	if me != nil && me.Number == 1062 {
-		return e.BadRequestError(fmt.Sprintf("email %s already exists", user.Email))
+		return e.BadRequest(fmt.Sprintf("email %s already exists", user.Email))
 	}
 
 	id, err := insert.LastInsertId()
 	if err != nil {
-		return e.InternalServerError("failed to get last insert id")
+		return e.InternalServer("failed to get last insert id")
 	}
 
 	user.Id = id
+	return nil
+}
+
+func (user *User) Update() *e.RestErr {
+	_, err := users_db.Client.Exec(
+		UpdateUserQuery,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.Id,
+	)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return e.InternalServer(fmt.Sprintf("failed to update user with id %d", user.Id))
+	}
+
 	return nil
 }

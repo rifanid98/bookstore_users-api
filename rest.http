@@ -13,3 +13,10 @@ content-type: application:json
   "date_created": "2021-06019"
 }
 ###
+PATCH http://localhost:8000/users/1
+content-type: application:json
+
+{
+  "email": "adnin@gmail.com"
+}
+###

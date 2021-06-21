@@ -1,7 +1,7 @@
 package users
 
 import (
-	"bookstore_users-api/utils/errors"
+	resp "bookstore_users-api/utils/response"
 	"strings"
 )
 
@@ -13,10 +13,10 @@ type User struct {
 	DateCreated string `json:"date_created"`
 }
 
-func (user *User) Validate() *errors.RestErr {
+func (user *User) Validate() *resp.RestErr {
 	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
 	if user.Email == "" {
-		return errors.BadRequestError("Invalid email address")
+		return resp.BadRequest("Invalid email address")
 	}
 	return nil
 }
