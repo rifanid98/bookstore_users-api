@@ -14,30 +14,36 @@ var (
 	usersDB = make(map[int64]*User)
 )
 
+const (
+	emailField = "users_UN"
+	emptyRow   = "no rows in result set"
+)
+
 func (user *User) Get() *e.RestErr {
-	if err := users_db.Client.Ping(); err != nil {
-		panic(err)
+	row := users_db.Client.QueryRow(GetUserByIdQuery,
+		user.Id,
+	)
+	err := row.Scan(
+		&user.Id,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.DateCreated,
+	)
+	if err != nil {
+		fmt.Println(err.Error())
+		if strings.Contains(err.Error(), emptyRow) {
+			return e.NotFoundError(fmt.Sprintf("user with id %d not found", user.Id))
+		} else {
+			return e.InternalServerError(fmt.Sprintf("failed to get user with id %d", user.Id))
+		}
 	}
-
-	result := usersDB[user.Id]
-	if result == nil {
-		return e.NotFoundError(fmt.Sprintf("user %d not found", user.Id))
-	}
-
-	user.Id = result.Id
-	user.FirstName = result.FirstName
-	user.LastName = result.LastName
-	user.Email = result.Email
-	user.DateCreated = result.DateCreated
 	return nil
 }
 
 func (user *User) Save() *e.RestErr {
 	user.DateCreated = dates.GetNowString()
-	query := `INSERT INTO users(first_name, last_name, email, date_created)
-						VALUES (?,?,?,?);`
-
-	insert, err := users_db.Client.Exec(query,
+	insert, err := users_db.Client.Exec(InsertUserQuery,
 		user.FirstName,
 		user.LastName,
 		user.Email,
@@ -46,7 +52,7 @@ func (user *User) Save() *e.RestErr {
 
 	me, _ := err.(*mysql.MySQLError)
 	fmt.Println(me.Message)
-	if me != nil && strings.Contains(me.Message, "users_UN") {
+	if me != nil && strings.Contains(me.Message, emailField) {
 		return e.BadRequestError(fmt.Sprintf("email %s already exists", user.Email))
 	}
 
