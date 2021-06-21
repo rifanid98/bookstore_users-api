@@ -39,7 +39,7 @@ func (user *User) Get() *e.RestErr {
 
 func (user *User) Save() *e.RestErr {
 	user.DateCreated = dates.GetNowString()
-	insert, err := users_db.Client.Exec(
+	result, err := users_db.Client.Exec(
 		InsertUserQuery,
 		user.FirstName,
 		user.LastName,
@@ -52,7 +52,7 @@ func (user *User) Save() *e.RestErr {
 		return e.BadRequest(fmt.Sprintf("email %s already exists", user.Email))
 	}
 
-	id, err := insert.LastInsertId()
+	id, err := result.LastInsertId()
 	if err != nil {
 		return e.InternalServer("failed to get last insert id")
 	}
@@ -73,6 +73,27 @@ func (user *User) Update() *e.RestErr {
 	if err != nil {
 		fmt.Println(err.Error())
 		return e.InternalServer(fmt.Sprintf("failed to update user with id %d", user.Id))
+	}
+
+	return nil
+}
+
+func (user *User) Delete() *e.RestErr {
+	result, err := users_db.Client.Exec(
+		DeleteUserQuery,
+		user.Id,
+	)
+
+	if err != nil {
+		return e.InternalServer(fmt.Sprintf("failed to delete user with id %d", user.Id))
+	}
+
+	affectedRows, err := result.RowsAffected()
+	if err != nil {
+		return e.InternalServer(fmt.Sprintf("failed to delete user with id %d", user.Id))
+	}
+	if affectedRows < 1 {
+		return e.NotFound(fmt.Sprintf("user with id %d not found", user.Id))
 	}
 
 	return nil

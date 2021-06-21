@@ -17,6 +17,12 @@ PATCH http://localhost:8000/users/1
 content-type: application:json
 
 {
-  "email": "adnin@gmail.com"
+  "id": 1,
+  "first_name": "Rifandi",
+  "last_name": "Adninaaa",
+  "email": "aaaa"
 }
+###
+DELETE http://localhost:8000/users/1
+content-type: application:json
 ###
