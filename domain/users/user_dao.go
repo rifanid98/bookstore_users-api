@@ -4,8 +4,8 @@ import (
 	"bookstore_users-api/datasources/mysql/users_db"
 	"bookstore_users-api/utils/dates"
 	e "bookstore_users-api/utils/errors"
+	"database/sql"
 	"fmt"
-	"strings"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -14,13 +14,9 @@ var (
 	usersDB = make(map[int64]*User)
 )
 
-const (
-	emailField = "users_UN"
-	emptyRow   = "no rows in result set"
-)
-
 func (user *User) Get() *e.RestErr {
-	row := users_db.Client.QueryRow(GetUserByIdQuery,
+	row := users_db.Client.QueryRow(
+		GetUserByIdQuery,
 		user.Id,
 	)
 	err := row.Scan(
@@ -32,7 +28,7 @@ func (user *User) Get() *e.RestErr {
 	)
 	if err != nil {
 		fmt.Println(err.Error())
-		if strings.Contains(err.Error(), emptyRow) {
+		if err == sql.ErrNoRows {
 			return e.NotFoundError(fmt.Sprintf("user with id %d not found", user.Id))
 		} else {
 			return e.InternalServerError(fmt.Sprintf("failed to get user with id %d", user.Id))
@@ -43,7 +39,8 @@ func (user *User) Get() *e.RestErr {
 
 func (user *User) Save() *e.RestErr {
 	user.DateCreated = dates.GetNowString()
-	insert, err := users_db.Client.Exec(InsertUserQuery,
+	insert, err := users_db.Client.Exec(
+		InsertUserQuery,
 		user.FirstName,
 		user.LastName,
 		user.Email,
@@ -51,8 +48,7 @@ func (user *User) Save() *e.RestErr {
 	)
 
 	me, _ := err.(*mysql.MySQLError)
-	fmt.Println(me.Message)
-	if me != nil && strings.Contains(me.Message, emailField) {
+	if me != nil && me.Number == 1062 {
 		return e.BadRequestError(fmt.Sprintf("email %s already exists", user.Email))
 	}
 
