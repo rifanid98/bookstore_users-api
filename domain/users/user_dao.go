@@ -10,10 +10,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
-var (
-	usersDB = make(map[int64]*User)
-)
-
 func (user *User) Get() *e.RestErr {
 	row := users_db.Client.QueryRow(
 		GetUserByIdQuery,
@@ -25,6 +21,8 @@ func (user *User) Get() *e.RestErr {
 		&user.LastName,
 		&user.DateCreated,
 		&user.Email,
+		&user.Status,
+		&user.Password,
 	)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -37,6 +35,45 @@ func (user *User) Get() *e.RestErr {
 	return nil
 }
 
+func (user *User) Find(status string) ([]User, *e.RestErr) {
+	var rows *sql.Rows
+	var err error
+
+	if len(status) > 0 {
+		rows, err = users_db.Client.Query(
+			GetUserByStatusQuery,
+			status,
+		)
+	} else {
+		rows, err = users_db.Client.Query(GetUserQuery)
+	}
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, e.InternalServer("failed to get users")
+	}
+
+	users := make([]User, 0)
+	for rows.Next() {
+		err := rows.Scan(
+			&user.Id,
+			&user.FirstName,
+			&user.LastName,
+			&user.DateCreated,
+			&user.Email,
+			&user.Status,
+			&user.Password,
+		)
+		if err != nil {
+			fmt.Println(err.Error())
+			return nil, e.InternalServer("failed to fetch map from database")
+		}
+		users = append(users, *user)
+	}
+
+	return users, nil
+}
+
 func (user *User) Save() *e.RestErr {
 	user.DateCreated = dates.GetNowString()
 	result, err := users_db.Client.Exec(
@@ -45,6 +82,8 @@ func (user *User) Save() *e.RestErr {
 		user.LastName,
 		user.Email,
 		user.DateCreated,
+		user.Status,
+		user.Password,
 	)
 
 	me, _ := err.(*mysql.MySQLError)

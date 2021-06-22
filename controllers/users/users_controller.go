@@ -10,21 +10,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetUser(c *gin.Context) {
+func GetUserById(c *gin.Context) {
 	userId, parseErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if parseErr != nil {
-		restErr := resp.BadRequest("Invalid user id")
-		c.JSON(int(restErr.StatusCode), restErr)
+		c.JSON(http.StatusBadRequest, resp.BadRequest("Invalid user id"))
 		return
 	}
 
-	user, getErr := services.GetUser(userId)
+	user, getErr := services.GetUserById(userId)
 	if getErr != nil {
 		c.JSON(int(getErr.StatusCode), getErr)
 		return
 	}
 
 	c.JSON(http.StatusOK, resp.Success(user))
+}
+
+func GetUser(c *gin.Context) {
+	query := &users.UserQuery{
+		Status: c.Query("status"),
+	}
+
+	users, getErr := services.GetUser(query)
+	if getErr != nil {
+		c.JSON(int(getErr.StatusCode), getErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, resp.Success(users))
 }
 
 func CreateUser(c *gin.Context) {
@@ -53,7 +66,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	user, getErr := services.GetUser(userId)
+	user, getErr := services.GetUserById(userId)
 	if getErr != nil {
 		c.JSON(int(getErr.StatusCode), getErr)
 		return

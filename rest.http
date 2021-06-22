@@ -1,5 +1,10 @@
 GET http://localhost:8000/ping
 ###
+GET http://localhost:8000/users
+###
+GET http://localhost:8000/users?status=active
+# ?status=test
+###
 GET http://localhost:8000/users/1
 ###
 POST http://localhost:8000/users
@@ -9,8 +14,10 @@ content-type: application:json
   "id": 1,
   "first_name": "Adnin",
   "last_name": "Rifandi",
-  "email": "aaaa",
-  "date_created": "2021-06019"
+  "email": "cccc",
+  "date_created": "2021-06019",
+  "status": "",
+  "password": "null"
 }
 ###
 PATCH http://localhost:8000/users/1
@@ -20,7 +27,9 @@ content-type: application:json
   "id": 1,
   "first_name": "Rifandi",
   "last_name": "Adninaaa",
-  "email": "aaaa"
+  "email": "aaaa",
+  "status": null,
+  "password": null
 }
 ###
 DELETE http://localhost:8000/users/1
