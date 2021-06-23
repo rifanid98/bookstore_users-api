@@ -10,55 +10,58 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetUserById(c *gin.Context) {
+func GetById(c *gin.Context) {
 	userId, parseErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if parseErr != nil {
 		c.JSON(http.StatusBadRequest, resp.BadRequest("Invalid user id"))
 		return
 	}
 
-	user, getErr := services.GetUserById(userId)
+	user, getErr := services.UsersService.GetUserById(userId)
 	if getErr != nil {
 		c.JSON(int(getErr.StatusCode), getErr)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp.Success(user))
+	marshalledUser := user.Marshall(c.GetHeader("X-Public") == "true")
+	c.JSON(http.StatusOK, resp.Success(marshalledUser))
 }
 
-func GetUser(c *gin.Context) {
+func Get(c *gin.Context) {
 	query := &users.UserQuery{
 		Status: c.Query("status"),
 	}
 
-	users, getErr := services.GetUser(query)
+	users, getErr := services.UsersService.GetUser(query)
 	if getErr != nil {
 		c.JSON(int(getErr.StatusCode), getErr)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp.Success(users))
+	marshalledUsers := users.Marshall(c.GetHeader("X-Public") == "true")
+	c.JSON(http.StatusOK, resp.Success(marshalledUsers))
 }
 
-func CreateUser(c *gin.Context) {
-	var user users.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+func Create(c *gin.Context) {
+	var u users.User
+	if err := c.ShouldBindJSON(&u); err != nil {
 		restErr := resp.BadRequest("Invalid json input")
 		c.JSON(int(restErr.StatusCode), restErr)
 		return
 	}
 
-	result, err := services.CreateUser(&user)
+	user, err := services.UsersService.CreateUser(&u)
 	if err != nil {
 		c.JSON(int(err.StatusCode), err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, resp.Created(result))
+	marshalledUser := user.Marshall(c.GetHeader("X-Public") == "true")
+	c.JSON(http.StatusCreated, resp.Created(marshalledUser))
 	return
 }
 
-func UpdateUser(c *gin.Context) {
+func Update(c *gin.Context) {
 	userId, parseErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if parseErr != nil {
 		restErr := resp.BadRequest("Invalid user id")
@@ -66,7 +69,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	user, getErr := services.GetUserById(userId)
+	user, getErr := services.UsersService.GetUserById(userId)
 	if getErr != nil {
 		c.JSON(int(getErr.StatusCode), getErr)
 		return
@@ -78,17 +81,18 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	result, err := services.UpdateUser(user)
+	user, err := services.UsersService.UpdateUser(user)
 	if err != nil {
 		c.JSON(int(err.StatusCode), err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp.Success(result))
+	marshalledUser := user.Marshall(c.GetHeader("X-Public") == "true")
+	c.JSON(http.StatusOK, resp.Success(marshalledUser))
 	return
 }
 
-func DeleteUser(c *gin.Context) {
+func Delete(c *gin.Context) {
 	userId, parseErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if parseErr != nil {
 		restErr := resp.BadRequest("Invalid user id")
@@ -100,7 +104,7 @@ func DeleteUser(c *gin.Context) {
 		Id: userId,
 	}
 
-	_, err := services.DeleteUser(user)
+	_, err := services.UsersService.DeleteUser(user)
 	if err != nil {
 		c.JSON(int(err.StatusCode), err)
 		return

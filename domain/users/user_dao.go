@@ -35,7 +35,7 @@ func (user *User) Get() *e.RestErr {
 	return nil
 }
 
-func (user *User) Find(status string) ([]User, *e.RestErr) {
+func (user *User) Find(status string) (Users, *e.RestErr) {
 	var rows *sql.Rows
 	var err error
 
@@ -53,7 +53,7 @@ func (user *User) Find(status string) ([]User, *e.RestErr) {
 		return nil, e.InternalServer("failed to get users")
 	}
 
-	users := make([]User, 0)
+	users := make(Users, 0)
 	for rows.Next() {
 		err := rows.Scan(
 			&user.Id,
