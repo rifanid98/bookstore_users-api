@@ -1,7 +1,7 @@
 GET http://localhost:8000/ping
 ###
 GET http://localhost:8000/users 
-X-Public: true
+# X-Public: true
 ###
 GET http://localhost:8000/users?status=active
 # ?status=test

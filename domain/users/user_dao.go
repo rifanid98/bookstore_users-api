@@ -3,6 +3,7 @@ package users
 import (
 	"bookstore_users-api/datasources/mysql/users_db"
 	"bookstore_users-api/utils/dates"
+	"bookstore_users-api/utils/logger"
 	e "bookstore_users-api/utils/response"
 	"database/sql"
 	"fmt"
@@ -25,11 +26,11 @@ func (user *User) Get() *e.RestErr {
 		&user.Password,
 	)
 	if err != nil {
-		fmt.Println(err.Error())
+		logger.Error("Error when scanning data from the database", err)
 		if err == sql.ErrNoRows {
 			return e.NotFound(fmt.Sprintf("user with id %d not found", user.Id))
 		} else {
-			return e.InternalServer(fmt.Sprintf("failed to get user with id %d", user.Id))
+			return e.InternalServer(fmt.Sprintf("Database Error. failed to get user with id %d", user.Id))
 		}
 	}
 	return nil
@@ -49,8 +50,9 @@ func (user *User) Find(status string) (Users, *e.RestErr) {
 	}
 
 	if err != nil {
+		logger.Error("error when retrieving data from the database", err)
 		fmt.Println(err.Error())
-		return nil, e.InternalServer("failed to get users")
+		return nil, e.InternalServer("Database Error. failed to get users")
 	}
 
 	users := make(Users, 0)
@@ -65,8 +67,9 @@ func (user *User) Find(status string) (Users, *e.RestErr) {
 			&user.Password,
 		)
 		if err != nil {
+			logger.Error("Error when scanning data from the database", err)
 			fmt.Println(err.Error())
-			return nil, e.InternalServer("failed to fetch map from database")
+			return nil, e.InternalServer("Logic Error. failed to fetch map from database")
 		}
 		users = append(users, *user)
 	}
