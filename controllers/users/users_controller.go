@@ -8,9 +8,19 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rifanid98/bookstore_oauth-go/oauth"
 )
 
+func init() {
+	oauth.BaseUrl = "localhost:8001"
+}
+
 func GetById(c *gin.Context) {
+	if err := oauth.AuthenticateRequest(c.Request); err != nil {
+		c.JSON(int(err.StatusCode), err)
+		return
+	}
+
 	userId, parseErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if parseErr != nil {
 		c.JSON(http.StatusBadRequest, resp.BadRequest("Invalid user id"))
@@ -23,7 +33,12 @@ func GetById(c *gin.Context) {
 		return
 	}
 
-	marshalledUser := user.Marshall(c.GetHeader("X-Public") == "true")
+	if oauth.GetCallerId(c.Request) == user.Id {
+		c.JSON(http.StatusOK, resp.Success(user.Marshall(false)))
+		return
+	}
+
+	marshalledUser := user.Marshall(oauth.IsPublic(c.Request))
 	c.JSON(http.StatusOK, resp.Success(marshalledUser))
 }
 
@@ -38,7 +53,7 @@ func Get(c *gin.Context) {
 		return
 	}
 
-	marshalledUsers := users.Marshall(c.GetHeader("X-Public") == "true")
+	marshalledUsers := users.Marshall(oauth.IsPublic(c.Request))
 	c.JSON(http.StatusOK, resp.Success(marshalledUsers))
 }
 
