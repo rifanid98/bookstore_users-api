@@ -7,6 +7,9 @@ GET http://localhost:8000/users?status=active
 # ?status=test
 ###
 GET http://localhost:8000/users/1
+X-Public: false
+###
+GET http://localhost:8000/users/1?token_id=76434771d4fa6e6176a38959380938a9
 X-Public: true
 ###
 POST http://localhost:8000/users
@@ -33,7 +36,7 @@ content-type: application:json
   "password": "password"
 }
 ###
-DELETE http://localhost:8000/users/1
+DELETE http://localhost:8000/users/2
 content-type: application:json
 ###
 POST http://localhost:8000/users/login
