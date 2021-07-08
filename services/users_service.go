@@ -15,6 +15,7 @@ type usersServiceInterface interface {
 	CreateUser(user *users.User) (*users.User, *resp.RestErr)
 	UpdateUser(user *users.User) (*users.User, *resp.RestErr)
 	DeleteUser(user *users.User) (*users.User, *resp.RestErr)
+	LoginUser(user *users.User) (*users.User, *resp.RestErr)
 }
 
 // extends usersServiceInterface and Implements methods according to the contract
@@ -87,5 +88,13 @@ func (s *usersService) DeleteUser(user *users.User) (*users.User, *resp.RestErr)
 		return nil, err
 	}
 
+	return user, nil
+}
+
+func (s *usersService) LoginUser(user *users.User) (*users.User, *resp.RestErr) {
+	err := user.GetByCredential()
+	if err != nil {
+		return nil, err
+	}
 	return user, nil
 }

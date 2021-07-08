@@ -113,3 +113,22 @@ func Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, resp.Success("deleted"))
 	return
 }
+
+func Login(c *gin.Context) {
+	var u users.User
+	if err := c.ShouldBindJSON(&u); err != nil {
+		restErr := resp.BadRequest("Invalid json input")
+		c.JSON(int(restErr.StatusCode), restErr)
+		return
+	}
+
+	user, err := services.UsersService.LoginUser(&u)
+	if err != nil {
+		c.JSON(int(err.StatusCode), err)
+		return
+	}
+
+	marshalledUser := user.Marshall(c.GetHeader("X-Public") == "true")
+	c.JSON(http.StatusCreated, resp.Created(marshalledUser))
+	return
+}

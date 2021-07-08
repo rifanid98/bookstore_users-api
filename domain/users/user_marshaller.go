@@ -1,6 +1,8 @@
 package users
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type PublicUser struct {
 	Id          int64   `json:"id"`

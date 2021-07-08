@@ -16,10 +16,10 @@ content-type: application:json
   "id": 1,
   "first_name": "Adnin",
   "last_name": "Rifandi",
-  "email": "aaaa",
+  "email": "adninsijawa.office@gmail.com",
   "date_created": "2021-06019",
-  "status": "null",
-  "password": "null"
+  "status": "status",
+  "password": "password"
 }
 ###
 PATCH http://localhost:8000/users/1
@@ -28,11 +28,19 @@ content-type: application:json
 {
   "first_name": "Adnin",
   "last_name": "Rifandi",
-  "email": "bbb",
-  "status": null,
-  "password": null
+  "email": "adninsijawa.office@gmail.com",
+  "status": "status",
+  "password": "password"
 }
 ###
 DELETE http://localhost:8000/users/1
 content-type: application:json
+###
+POST http://localhost:8000/users/login
+content-type: application:json
+
+{
+  "email": "adninsijawa.office@gmail.com",
+  "password": "password"
+}
 ###

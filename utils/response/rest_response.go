@@ -38,6 +38,14 @@ func InternalServer(error string) *RestErr {
 	}
 }
 
+func Unauthorized(error string) *RestErr {
+	return &RestErr{
+		StatusCode: http.StatusUnauthorized,
+		Message:    http.StatusText(http.StatusUnauthorized),
+		Error:      error,
+	}
+}
+
 func Success(data interface{}) *RestResp {
 	return &RestResp{
 		StatusCode: http.StatusOK,

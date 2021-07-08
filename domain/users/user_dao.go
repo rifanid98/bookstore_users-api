@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (user *User) Get() *e.RestErr {
@@ -136,6 +137,39 @@ func (user *User) Delete() *e.RestErr {
 	}
 	if affectedRows < 1 {
 		return e.NotFound(fmt.Sprintf("user with id %d not found", user.Id))
+	}
+
+	return nil
+}
+
+func (user *User) GetByCredential() *e.RestErr {
+	password := []byte(*user.Password)
+	row := users_db.Client.QueryRow(
+		GetUserByCredential,
+		user.Email,
+	)
+
+	if err := row.Scan(
+		&user.Id,
+		&user.FirstName,
+		&user.LastName,
+		&user.DateCreated,
+		&user.Email,
+		&user.Status,
+		&user.Password,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return e.NotFound("user not found")
+		}
+		logger.Error("Error when scanning data from the database", err)
+		fmt.Println(err.Error())
+		return e.InternalServer("Logic Error. failed to fetch map from database")
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(*user.Password), password)
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		logger.Info("User gives wrong credentials")
+		return e.Unauthorized("Invalid credentials")
 	}
 
 	return nil
