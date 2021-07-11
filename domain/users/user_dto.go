@@ -1,8 +1,9 @@
 package users
 
 import (
-	resp "bookstore_users-api/utils/response"
 	"strings"
+
+	resp "github.com/rifanid98/bookstore_utils-go/response"
 )
 
 type User struct {

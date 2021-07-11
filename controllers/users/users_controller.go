@@ -3,12 +3,12 @@ package controllers
 import (
 	"bookstore_users-api/domain/users"
 	"bookstore_users-api/services"
-	resp "bookstore_users-api/utils/response"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rifanid98/bookstore_oauth-go/oauth"
+	resp "github.com/rifanid98/bookstore_utils-go/response"
 )
 
 func init() {

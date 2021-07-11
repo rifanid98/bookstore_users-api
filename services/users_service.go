@@ -2,8 +2,9 @@ package services
 
 import (
 	"bookstore_users-api/domain/users"
-	resp "bookstore_users-api/utils/response"
 	"fmt"
+
+	resp "github.com/rifanid98/bookstore_utils-go/response"
 
 	"golang.org/x/crypto/bcrypt"
 )

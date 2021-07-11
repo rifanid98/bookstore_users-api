@@ -1,10 +1,9 @@
 package app
 
 import (
-	_ "bookstore_users-api/utils/env"
-	"bookstore_users-api/utils/logger"
-
 	"github.com/gin-gonic/gin"
+	_ "github.com/rifanid98/bookstore_utils-go/env"
+	"github.com/rifanid98/bookstore_utils-go/logger"
 )
 
 var (

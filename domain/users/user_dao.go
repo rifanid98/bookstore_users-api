@@ -2,17 +2,17 @@ package users
 
 import (
 	"bookstore_users-api/datasources/mysql/users_db"
-	"bookstore_users-api/utils/dates"
-	"bookstore_users-api/utils/logger"
-	e "bookstore_users-api/utils/response"
 	"database/sql"
 	"fmt"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/rifanid98/bookstore_utils-go/dates"
+	"github.com/rifanid98/bookstore_utils-go/logger"
+	resp "github.com/rifanid98/bookstore_utils-go/response"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (user *User) Get() *e.RestErr {
+func (user *User) Get() *resp.RestErr {
 	row := users_db.Client.QueryRow(
 		GetUserByIdQuery,
 		user.Id,
@@ -29,15 +29,15 @@ func (user *User) Get() *e.RestErr {
 	if err != nil {
 		logger.Error("Error when scanning data from the database", err)
 		if err == sql.ErrNoRows {
-			return e.NotFound(fmt.Sprintf("user with id %d not found", user.Id))
+			return resp.NotFound(fmt.Sprintf("user with id %d not found", user.Id))
 		} else {
-			return e.InternalServer(fmt.Sprintf("Database Error. failed to get user with id %d", user.Id))
+			return resp.InternalServer(fmt.Sprintf("Database Error. failed to get user with id %d", user.Id))
 		}
 	}
 	return nil
 }
 
-func (user *User) Find(status string) (Users, *e.RestErr) {
+func (user *User) Find(status string) (Users, *resp.RestErr) {
 	var rows *sql.Rows
 	var err error
 
@@ -53,7 +53,7 @@ func (user *User) Find(status string) (Users, *e.RestErr) {
 	if err != nil {
 		logger.Error("error when retrieving data from the database", err)
 		fmt.Println(err.Error())
-		return nil, e.InternalServer("Database Error. failed to get users")
+		return nil, resp.InternalServer("Database Error. failed to get users")
 	}
 
 	users := make(Users, 0)
@@ -70,7 +70,7 @@ func (user *User) Find(status string) (Users, *e.RestErr) {
 		if err != nil {
 			logger.Error("Error when scanning data from the database", err)
 			fmt.Println(err.Error())
-			return nil, e.InternalServer("Logic Error. failed to fetch map from database")
+			return nil, resp.InternalServer("Logic Error. failed to fetch map from database")
 		}
 		users = append(users, *user)
 	}
@@ -78,7 +78,7 @@ func (user *User) Find(status string) (Users, *e.RestErr) {
 	return users, nil
 }
 
-func (user *User) Save() *e.RestErr {
+func (user *User) Save() *resp.RestErr {
 	user.DateCreated = dates.GetNowString()
 	result, err := users_db.Client.Exec(
 		InsertUserQuery,
@@ -92,19 +92,19 @@ func (user *User) Save() *e.RestErr {
 
 	me, _ := err.(*mysql.MySQLError)
 	if me != nil && me.Number == 1062 {
-		return e.BadRequest(fmt.Sprintf("email %s already exists", user.Email))
+		return resp.BadRequest(fmt.Sprintf("email %s already exists", user.Email))
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return e.InternalServer("failed to get last insert id")
+		return resp.InternalServer("failed to get last insert id")
 	}
 
 	user.Id = id
 	return nil
 }
 
-func (user *User) Update() *e.RestErr {
+func (user *User) Update() *resp.RestErr {
 	_, err := users_db.Client.Exec(
 		UpdateUserQuery,
 		user.FirstName,
@@ -115,34 +115,34 @@ func (user *User) Update() *e.RestErr {
 
 	if err != nil {
 		fmt.Println(err.Error())
-		return e.InternalServer(fmt.Sprintf("failed to update user with id %d", user.Id))
+		return resp.InternalServer(fmt.Sprintf("failed to update user with id %d", user.Id))
 	}
 
 	return nil
 }
 
-func (user *User) Delete() *e.RestErr {
+func (user *User) Delete() *resp.RestErr {
 	result, err := users_db.Client.Exec(
 		DeleteUserQuery,
 		user.Id,
 	)
 
 	if err != nil {
-		return e.InternalServer(fmt.Sprintf("failed to delete user with id %d", user.Id))
+		return resp.InternalServer(fmt.Sprintf("failed to delete user with id %d", user.Id))
 	}
 
 	affectedRows, err := result.RowsAffected()
 	if err != nil {
-		return e.InternalServer(fmt.Sprintf("failed to delete user with id %d", user.Id))
+		return resp.InternalServer(fmt.Sprintf("failed to delete user with id %d", user.Id))
 	}
 	if affectedRows < 1 {
-		return e.NotFound(fmt.Sprintf("user with id %d not found", user.Id))
+		return resp.NotFound(fmt.Sprintf("user with id %d not found", user.Id))
 	}
 
 	return nil
 }
 
-func (user *User) GetByCredential() *e.RestErr {
+func (user *User) GetByCredential() *resp.RestErr {
 	password := []byte(*user.Password)
 	row := users_db.Client.QueryRow(
 		GetUserByCredential,
@@ -159,17 +159,17 @@ func (user *User) GetByCredential() *e.RestErr {
 		&user.Password,
 	); err != nil {
 		if err == sql.ErrNoRows {
-			return e.NotFound("user not found")
+			return resp.NotFound("user not found")
 		}
 		logger.Error("Error when scanning data from the database", err)
 		fmt.Println(err.Error())
-		return e.InternalServer("Logic Error. failed to fetch map from database")
+		return resp.InternalServer("Logic Error. failed to fetch map from database")
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(*user.Password), password)
 	if err == bcrypt.ErrMismatchedHashAndPassword {
 		logger.Info("User gives wrong credentials")
-		return e.Unauthorized("Invalid credentials")
+		return resp.Unauthorized("Invalid credentials")
 	}
 
 	return nil
