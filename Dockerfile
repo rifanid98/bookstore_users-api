@@ -19,7 +19,7 @@ COPY . .
 RUN go build -o bookstore_users-api .
 
 # Expose port 8080 to the outside world
-EXPOSE 8002
+EXPOSE 8000
 
 # Command to run the executable
 CMD ["./bookstore_users-api"]
